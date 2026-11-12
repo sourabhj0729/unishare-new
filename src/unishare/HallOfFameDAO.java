@@ -72,6 +72,7 @@ public final class HallOfFameDAO {
             "           FROM resources r JOIN categories c ON c.id = r.category_id " +
             "           WHERE LOWER(c.name) IN ('books', 'notes & papers') " +
             "           GROUP BY r.owner_id) k ON k.owner_id = u.user_id " +
+            "HAVING points > 0 " +
             "ORDER BY points DESC, successful_lends DESC, on_time_returns DESC, " +
             "resources_shared DESC, u.full_name ASC";
 
