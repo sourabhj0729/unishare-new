@@ -134,6 +134,13 @@ public class DashboardFrame extends JFrame {
             p.add(Box.createVerticalStrut(6));
         }
 
+        Ui.Button hallOfFame = new Ui.Button("Hall of Fame", Ui.Button.Kind.NAV);
+        hallOfFame.setAlignmentX(0f);
+        hallOfFame.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        hallOfFame.addActionListener(e -> new HallOfFameFrame(me).setVisible(true));
+        p.add(hallOfFame);
+        p.add(Box.createVerticalStrut(10));
+
         p.add(Box.createVerticalGlue());
 
         JPanel user = new JPanel(new BorderLayout(12, 0));
