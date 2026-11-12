@@ -67,7 +67,17 @@ public final class HallOfFameFrame extends JFrame {
     private void loadLeaderboard() {
         try {
             List<HallOfFameDAO.Entry> entries = dao.leaderboard();
-            JPanel content = new JPanel(new BorderLayout(0, 16));
+
+            JPanel heading = new JPanel();
+            heading.setOpaque(false);
+            heading.setLayout(new javax.swing.BoxLayout(heading, javax.swing.BoxLayout.Y_AXIS));
+            heading.add(Ui.label("🏆 Hall of Fame", Font.BOLD, 29f, Ui.TEXT));
+            heading.add(Ui.label("Celebrating the students who make campus sharing better.",
+                    Font.PLAIN, 14f, Ui.MUTED));
+            heading.add(javax.swing.Box.createVerticalStrut(10));
+            heading.add(status);
+
+            JPanel content = new JPanel(new BorderLayout(0, 14));
             content.setOpaque(false);
             content.add(buildPodium(entries), BorderLayout.NORTH);
             content.add(buildRankingTable(entries), BorderLayout.CENTER);
@@ -81,14 +91,14 @@ public final class HallOfFameFrame extends JFrame {
             rules.add(rule("+5", "Book / notes bonus"));
             rules.add(rule("Top 7", "Earn the seven titles"));
 
-            JPanel lower = new JPanel(new BorderLayout(0, 8));
-            lower.setOpaque(false);
-            lower.add(content, BorderLayout.CENTER);
-            lower.add(rules, BorderLayout.SOUTH);
-
-            setContentPane(lower);
-            lower.setBorder(BorderFactory.createEmptyBorder(26, 30, 26, 30));
-            lower.setBackground(Ui.BG);
+            JPanel root = new JPanel(new BorderLayout(0, 16));
+            root.setOpaque(true);
+            root.setBackground(Ui.BG);
+            root.setBorder(BorderFactory.createEmptyBorder(26, 30, 26, 30));
+            root.add(heading, BorderLayout.NORTH);
+            root.add(content, BorderLayout.CENTER);
+            root.add(rules, BorderLayout.SOUTH);
+            setContentPane(root);
             revalidate();
             repaint();
         } catch (SQLException e) {
