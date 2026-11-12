@@ -31,6 +31,22 @@ The application creates the `unishare` database and required tables automaticall
 - Every borrow creates a separate history row. Returning an item closes the active history row, so previous borrowing cycles remain visible.
 - An item returned after its due date is shown as `Returned` in history; the returned and due dates are both retained so late-return/fine calculation can be added next.
 
+## Hall of Fame
+
+The Hall of Fame ranks students by verified sharing and borrowing activity. Scores are calculated from the existing `resources` and `borrowing_history` tables; no manual score editing or extra database table is required.
+
+### Contribution points
+
+- +10 points for each currently listed resource.
+- +20 points for each completed lending (a resource returned to its owner).
+- +15 points for each on-time return.
+- +5 points for each late return (responsible completion still receives credit, but fewer points).
+- +5 bonus points for each currently listed book or study-notes resource.
+
+The leaderboard uses total points, then successful lending, on-time returns, resource count and student name as tie-breakers. The top seven positions receive, in order: Campus Legend, Grandmaster, Master, Elite Contributor, Rising Star, Community Hero and Knowledge Guardian. Other students appear as Contributors.
+
+Scores are derived from current database records whenever the Hall of Fame is opened. Deleting a currently listed resource removes its listing points; completed borrowing-history records remain available for lending and return points.
+
 ## Manual compile (optional)
 
 ```bash
