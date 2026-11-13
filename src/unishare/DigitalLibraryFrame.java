@@ -257,64 +257,160 @@ public final class DigitalLibraryFrame extends JFrame {
     }
 
     private void showUploadDialog() {
+        javax.swing.JDialog dialog = new javax.swing.JDialog(this, "Share a document", true);
+        dialog.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
         javax.swing.JTextField title = new javax.swing.JTextField();
         javax.swing.JTextField subject = new javax.swing.JTextField();
         javax.swing.JTextField department = new javax.swing.JTextField(me.department);
         javax.swing.JTextField faculty = new javax.swing.JTextField();
-        javax.swing.JTextArea description = new javax.swing.JTextArea(3, 24);
+        javax.swing.JTextArea description = new javax.swing.JTextArea(4, 24);
         JComboBox<String> semester = new JComboBox<>(new String[]{"1", "2", "3", "4", "5", "6", "7", "8"});
-        JLabel fileLabel = Ui.label("No file selected (max 25 MB)", Font.PLAIN, 12f, Ui.MUTED);
-        final Path[] selectedFile = new Path[1];
+        Ui.style(semester);
+        Ui.style(title);
+        Ui.style(subject);
+        Ui.style(department);
+        Ui.style(faculty);
+        Ui.height(title, 42);
+        Ui.height(subject, 42);
+        Ui.height(department, 42);
+        Ui.height(faculty, 42);
 
-        JPanel form = new JPanel(new java.awt.GridLayout(0, 2, 10, 10));
-        form.setBorder(BorderFactory.createEmptyBorder(8, 4, 8, 4));
-        form.add(new JLabel("Document title *")); form.add(title);
-        form.add(new JLabel("Subject *")); form.add(subject);
-        form.add(new JLabel("Department *")); form.add(department);
-        form.add(new JLabel("Semester *")); form.add(semester);
-        form.add(new JLabel("Faculty")); form.add(faculty);
-        form.add(new JLabel("Description")); form.add(new JScrollPane(description));
-        Ui.Button choose = new Ui.Button("Choose file...", Ui.Button.Kind.SECONDARY);
+        description.setFont(Ui.font(Font.PLAIN, 13f));
+        description.setForeground(Ui.TEXT);
+        description.setLineWrap(true);
+        description.setWrapStyleWord(true);
+        description.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Ui.BORDER),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)));
+
+        final Path[] selectedFile = new Path[1];
+        JLabel fileName = Ui.label("No file selected · PDF, PPT, DOC or TXT · Max 25 MB",
+                Font.PLAIN, 12f, Ui.MUTED);
+        Ui.Button choose = new Ui.Button("Browse files", Ui.Button.Kind.SECONDARY);
         choose.addActionListener(e -> {
             JFileChooser picker = new JFileChooser();
             picker.setFileFilter(new FileNameExtensionFilter(
-                    "Academic files (PDF, PPT, PPTX, DOC, DOCX, TXT)", "pdf", "ppt", "pptx", "doc", "docx", "txt"));
-            if (picker.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    "Academic files (PDF, PPT, PPTX, DOC, DOCX, TXT)",
+                    "pdf", "ppt", "pptx", "doc", "docx", "txt"));
+            if (picker.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
                 selectedFile[0] = picker.getSelectedFile().toPath();
-                fileLabel.setText(picker.getSelectedFile().getName());
+                fileName.setText(picker.getSelectedFile().getName());
+                fileName.setForeground(Ui.TEXT);
             }
         });
-        JPanel fileRow = new JPanel(new BorderLayout(8, 0));
-        fileRow.add(choose, BorderLayout.WEST);
-        fileRow.add(fileLabel, BorderLayout.CENTER);
-        form.add(new JLabel("File *")); form.add(fileRow);
 
-        int answer = JOptionPane.showConfirmDialog(this, form, "Upload to Digital Library",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (answer != JOptionPane.OK_OPTION) return;
-        if (title.getText().trim().isEmpty() || subject.getText().trim().isEmpty()
-                || department.getText().trim().isEmpty() || selectedFile[0] == null) {
-            JOptionPane.showMessageDialog(this, "Complete all required fields and choose a file.",
-                    "Missing information", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        try {
-            Document d = new Document();
-            d.title = title.getText().trim();
-            d.subject = subject.getText().trim();
-            d.department = department.getText().trim();
-            d.semester = Integer.parseInt((String) semester.getSelectedItem());
-            d.faculty = faculty.getText().trim();
-            d.description = description.getText().trim();
-            d.uploadedBy = me.userId;
-            service.upload(d, selectedFile[0]);
-            JOptionPane.showMessageDialog(this, "Your document is now available in the Digital Library.",
-                    "Upload successful", JOptionPane.INFORMATION_MESSAGE);
-            loadDepartments();
-            reload();
-        } catch (Exception e) {
-            showError("Upload failed", e);
-        }
+        JPanel content = new JPanel(new BorderLayout(0, 18));
+        content.setBackground(Color.WHITE);
+        content.setBorder(BorderFactory.createEmptyBorder(24, 28, 22, 28));
+
+        JPanel heading = new JPanel();
+        heading.setOpaque(false);
+        heading.setLayout(new javax.swing.BoxLayout(heading, javax.swing.BoxLayout.Y_AXIS));
+        heading.add(Ui.label("Add to your campus library", Font.BOLD, 21f, Ui.TEXT));
+        JLabel subheading = Ui.label("Share useful study material with your classmates.",
+                Font.PLAIN, 13f, Ui.MUTED);
+        subheading.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+        heading.add(subheading);
+        content.add(heading, BorderLayout.NORTH);
+
+        JPanel fields = new JPanel(new java.awt.GridBagLayout());
+        fields.setOpaque(false);
+        java.awt.GridBagConstraints gc = new java.awt.GridBagConstraints();
+        gc.gridx = 0;
+        gc.weightx = 1;
+        gc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gc.insets = new java.awt.Insets(0, 0, 13, 0);
+        int row = 0;
+
+        addUploadField(fields, gc, row++, "DOCUMENT TITLE *", title);
+        addUploadField(fields, gc, row++, "SUBJECT *", subject);
+
+        JPanel departmentSemester = new JPanel(new java.awt.GridLayout(1, 2, 12, 0));
+        departmentSemester.setOpaque(false);
+        departmentSemester.add(Ui.labeled("DEPARTMENT *", department));
+        departmentSemester.add(Ui.labeled("SEMESTER *", semester));
+        gc.gridy = row++;
+        fields.add(departmentSemester, gc);
+
+        addUploadField(fields, gc, row++, "FACULTY (OPTIONAL)", faculty);
+        JScrollPane descriptionScroll = new JScrollPane(description);
+        descriptionScroll.setBorder(BorderFactory.createLineBorder(Ui.BORDER));
+        addUploadField(fields, gc, row++, "DESCRIPTION (OPTIONAL)", descriptionScroll);
+
+        JPanel filePanel = new JPanel(new BorderLayout(12, 0));
+        filePanel.setOpaque(false);
+        filePanel.add(choose, BorderLayout.WEST);
+        filePanel.add(fileName, BorderLayout.CENTER);
+        addUploadField(fields, gc, row, "SELECT FILE *", filePanel);
+
+        JPanel formCard = new Ui.Card(16, Color.WHITE);
+        formCard.setLayout(new BorderLayout());
+        formCard.setBorder(BorderFactory.createEmptyBorder(18, 18, 5, 18));
+        formCard.add(fields, BorderLayout.CENTER);
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
+        center.add(formCard, BorderLayout.NORTH);
+        content.add(center, BorderLayout.CENTER);
+
+        Ui.Button cancel = new Ui.Button("Cancel", Ui.Button.Kind.SECONDARY);
+        Ui.Button upload = new Ui.Button("Share document", Ui.Button.Kind.PRIMARY);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        actions.setOpaque(false);
+        actions.add(cancel);
+        actions.add(upload);
+        content.add(actions, BorderLayout.SOUTH);
+
+        cancel.addActionListener(e -> dialog.dispose());
+        upload.addActionListener(e -> {
+            if (title.getText().trim().isEmpty() || subject.getText().trim().isEmpty()
+                    || department.getText().trim().isEmpty() || selectedFile[0] == null) {
+                JOptionPane.showMessageDialog(dialog,
+                        "Please complete the required fields and select a document.",
+                        "Missing information", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            try {
+                Document d = new Document();
+                d.title = title.getText().trim();
+                d.subject = subject.getText().trim();
+                d.department = department.getText().trim();
+                d.semester = Integer.parseInt((String) semester.getSelectedItem());
+                d.faculty = faculty.getText().trim();
+                d.description = description.getText().trim();
+                d.uploadedBy = me.userId;
+                service.upload(d, selectedFile[0]);
+                dialog.dispose();
+                JOptionPane.showMessageDialog(this, "Your document is now available in the Digital Library.",
+                        "Upload successful", JOptionPane.INFORMATION_MESSAGE);
+                loadDepartments();
+                reload();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Upload failed: " + ex.getMessage(),
+                        "Digital Library", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        dialog.setContentPane(content);
+        dialog.setSize(660, 760);
+        dialog.setMinimumSize(new Dimension(620, 700));
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void addUploadField(JPanel parent, java.awt.GridBagConstraints base, int row,
+            String caption, java.awt.Component component) {
+        JPanel field = new JPanel();
+        field.setOpaque(false);
+        field.setLayout(new javax.swing.BoxLayout(field, javax.swing.BoxLayout.Y_AXIS));
+        JLabel label = Ui.label(caption, Font.BOLD, 11f, Ui.MUTED);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
+        field.add(label);
+        field.add(component);
+        java.awt.GridBagConstraints gc = (java.awt.GridBagConstraints) base.clone();
+        gc.gridy = row;
+        parent.add(field, gc);
     }
 
     private void showError(String title, Exception e) {
