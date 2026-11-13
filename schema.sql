@@ -52,3 +52,26 @@ CREATE TABLE IF NOT EXISTS borrowing_history (
   CONSTRAINT fk_history_owner FOREIGN KEY (owner_id) REFERENCES users(user_id),
   CONSTRAINT fk_history_borrower FOREIGN KEY (borrower_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB;
+
+
+-- Campus digital library: metadata is stored here; files live in uploads/documents.
+CREATE TABLE IF NOT EXISTS documents (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(180) NOT NULL,
+  description VARCHAR(1000),
+  original_file_name VARCHAR(255) NOT NULL,
+  stored_file_name VARCHAR(100) NOT NULL UNIQUE,
+  file_path VARCHAR(500) NOT NULL,
+  file_type VARCHAR(10) NOT NULL,
+  subject VARCHAR(120) NOT NULL,
+  department VARCHAR(100) NOT NULL,
+  semester TINYINT NOT NULL,
+  faculty VARCHAR(120),
+  uploaded_by VARCHAR(30) NOT NULL,
+  uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_documents_subject (subject),
+  INDEX idx_documents_department_semester (department, semester),
+  FULLTEXT INDEX ft_documents_search (title, description, subject, faculty),
+  CONSTRAINT fk_documents_uploader FOREIGN KEY (uploaded_by)
+    REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
