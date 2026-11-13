@@ -393,8 +393,8 @@ public final class DigitalLibraryFrame extends JFrame {
         });
 
         dialog.setContentPane(content);
-        dialog.setSize(660, 760);
-        dialog.setMinimumSize(new Dimension(620, 700));
+        dialog.setSize(660, 700);
+        dialog.setMinimumSize(new Dimension(620, 660));
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
