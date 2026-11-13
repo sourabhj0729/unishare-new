@@ -149,6 +149,21 @@ public class DashboardFrame extends JFrame {
         p.add(hallOfFame);
         p.add(Box.createVerticalStrut(6));
 
+        Ui.Button library = new Ui.Button("Digital Library", Ui.Button.Kind.NAV);
+        library.setAlignmentX(0f);
+        library.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        library.setToolTipText("Browse, upload and download academic documents");
+        library.addActionListener(e -> {
+            DigitalLibraryFrame frame = new DigitalLibraryFrame(me);
+            frame.setVisible(true);
+            frame.setAlwaysOnTop(true);
+            frame.toFront();
+            frame.requestFocus();
+            frame.setAlwaysOnTop(false);
+        });
+        p.add(library);
+        p.add(Box.createVerticalStrut(6));
+
         p.add(Box.createVerticalGlue());
 
         JPanel user = new JPanel(new BorderLayout(12, 0));
