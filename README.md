@@ -36,6 +36,34 @@ The application creates the `unishare` database and required tables automaticall
 - The Open action launches the file in the computer's default viewer. Embedded PDF rendering is not included yet.
 - A shared library across multiple computers requires a shared MySQL server and shared file storage; the current local setup stores files on the machine running the application.
 
+
+## AI Study Materials
+
+The Digital Library includes an optional AI study assistant for a selected document. It can generate:
+- Multiple-choice questions with answers and explanations.
+- Flashcards for active recall.
+- Important exam-oriented questions.
+- Short- and long-answer questions with model answers.
+- Chapter-wise revision notes.
+
+### AI service setup (Windows)
+
+1. Install Python 3.10 or newer.
+2. Set an OpenAI API key in the same Command Prompt session: `set OPENAI_API_KEY=your_api_key`.
+3. Run `run_ai_service.bat` from the project root. The script creates a virtual environment, installs the Python dependencies and starts the local service on `127.0.0.1:8000`.
+4. Keep that terminal open while using UniShare.
+5. Start UniShare, open Digital Library, select a document and click **AI Study Materials**.
+
+You can optionally set `OPENAI_MODEL` to select a model supported by your API account; the default is `gpt-4.1-mini`. API usage may incur charges. Never commit your API key to Git.
+
+### Extraction support and limitations
+
+- Text extraction currently supports PDF, DOCX, PPTX and TXT.
+- Legacy DOC/PPT files must be converted to DOCX/PPTX first.
+- Scanned/image-only PDFs need OCR before they can be processed; OCR is not included in this first version.
+- The AI service processes up to 45,000 extracted characters per document request.
+- Generated content is a study aid, not a substitute for checking the original document. The service is local to the computer running UniShare; it is not a shared campus AI server.
+
 ## Borrowing rules in this version
 - A resource can be borrowed only when it is available.
 - Students cannot borrow their own resources.
