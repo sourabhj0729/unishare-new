@@ -42,7 +42,7 @@ public final class CommunityDAO {
                 int returned = rs.getInt("returned");
                 int percent = returned == 0 ? 0 : Math.round(onTime * 100f / returned);
                 rows.add(new Object[]{rs.getString("user_id"), rs.getString("full_name"),
-                        onTime, returned, percent + "%", tier(percent, returned)});
+                        onTime, returned, percent + "%", reliabilityTier(percent, returned)});
             }
         }
         return rows;
@@ -60,6 +60,13 @@ public final class CommunityDAO {
             }
         }
         return rows;
+    }
+
+    private String reliabilityTier(int percent, int returned) {
+        if (returned >= 20 && percent >= 95) return "Grandmaster";
+        if (returned >= 10 && percent >= 90) return "Master";
+        if (returned >= 5 && percent >= 80) return "Expert";
+        return "Rising Star";
     }
 
     private String tier(int score, int activity) {
