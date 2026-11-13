@@ -3,3 +3,5 @@ out/
 *.class
 *.log
 .idea/
+uploads/documents/*
+!uploads/documents/.gitkeep

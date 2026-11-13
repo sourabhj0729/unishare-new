@@ -9,6 +9,7 @@ A Java Swing desktop application backed by MySQL using JDBC.
 - Seven-day borrowing period with a due date displayed in the resource table.
 - Borrowing history for both items borrowed by you and items lent by you.
 - Community Hall of Fame with live rankings for top resource contributors, top lenders and reliable on-time borrowers.
+- Digital Library for uploading, browsing, searching, filtering and downloading academic PDFs, presentations, documents and notes.
 - Community titles: Rising Star (1+ activities), Expert (5+), Master (10+) and Grandmaster (20+).
 - History records include borrowed date, due date, returned date and current status (Borrowed, Overdue or Returned).
 
@@ -25,6 +26,15 @@ A Java Swing desktop application backed by MySQL using JDBC.
 5. Create an account and sign in.
 
 The application creates the `unishare` database and required tables automatically. If you already have an older UniShare database, startup adds the `resources.due_date` column and creates `borrowing_history` without deleting existing users or resources.
+
+## Digital Library
+
+- Students can browse and download existing documents without uploading anything.
+- Uploading is optional and supports PDF, PPT, PPTX, DOC, DOCX and TXT files up to 25 MB.
+- Documents are categorized by subject, department and semester, with optional faculty and description fields.
+- File metadata is stored in MySQL; uploaded files are stored under `uploads/documents/` and are excluded from Git.
+- The Open action launches the file in the computer's default viewer. Embedded PDF rendering is not included yet.
+- A shared library across multiple computers requires a shared MySQL server and shared file storage; the current local setup stores files on the machine running the application.
 
 ## Borrowing rules in this version
 - A resource can be borrowed only when it is available.
