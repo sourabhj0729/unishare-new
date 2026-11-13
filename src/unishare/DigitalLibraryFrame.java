@@ -143,11 +143,14 @@ public final class DigitalLibraryFrame extends JFrame {
         refresh.addActionListener(e -> reload());
         openButton.setEnabled(false);
         downloadButton.setEnabled(false);
+        studyButton.setEnabled(false);
         openButton.addActionListener(e -> openSelected());
         downloadButton.addActionListener(e -> downloadSelected());
+        studyButton.addActionListener(e -> openStudyMaterials());
         actions.add(refresh);
         actions.add(openButton);
         actions.add(downloadButton);
+        actions.add(studyButton);
         footer.add(actions, BorderLayout.EAST);
         center.add(footer, BorderLayout.SOUTH);
         root.add(center, BorderLayout.CENTER);
@@ -158,6 +161,7 @@ public final class DigitalLibraryFrame extends JFrame {
                 boolean selected = table.getSelectedRow() >= 0;
                 openButton.setEnabled(selected);
                 downloadButton.setEnabled(selected);
+                studyButton.setEnabled(selected);
             }
         });
         search.getDocument().addDocumentListener(new DocumentListener() {
