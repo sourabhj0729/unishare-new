@@ -8,6 +8,8 @@ A Java Swing desktop application backed by MySQL using JDBC.
 - Borrow and return resources.
 - Seven-day borrowing period with a due date displayed in the resource table.
 - Borrowing history for both items borrowed by you and items lent by you.
+- Community Hall of Fame with live rankings for top resource contributors, top lenders and reliable on-time borrowers.
+- Community titles: Rising Star (1+ activities), Expert (5+), Master (10+) and Grandmaster (20+).
 - History records include borrowed date, due date, returned date and current status (Borrowed, Overdue or Returned).
 
 ## Requirements
