@@ -47,7 +47,6 @@ public final class DigitalLibraryFrame extends JFrame {
     private final JTable table = new JTable(model);
     private final Ui.Button openButton = new Ui.Button("Preview / Open", Ui.Button.Kind.PRIMARY);
     private final Ui.Button downloadButton = new Ui.Button("Download", Ui.Button.Kind.SECONDARY);
-    private final Ui.Button studyButton = new Ui.Button("AI Study Materials", Ui.Button.Kind.SECONDARY);
     private final JLabel countLabel = Ui.label(" ", Font.PLAIN, 12f, Ui.MUTED);
 
     public DigitalLibraryFrame(Models.User me) {
@@ -143,14 +142,11 @@ public final class DigitalLibraryFrame extends JFrame {
         refresh.addActionListener(e -> reload());
         openButton.setEnabled(false);
         downloadButton.setEnabled(false);
-        studyButton.setEnabled(false);
         openButton.addActionListener(e -> openSelected());
         downloadButton.addActionListener(e -> downloadSelected());
-        studyButton.addActionListener(e -> openStudyMaterials());
         actions.add(refresh);
         actions.add(openButton);
         actions.add(downloadButton);
-        actions.add(studyButton);
         footer.add(actions, BorderLayout.EAST);
         center.add(footer, BorderLayout.SOUTH);
         root.add(center, BorderLayout.CENTER);
@@ -161,7 +157,6 @@ public final class DigitalLibraryFrame extends JFrame {
                 boolean selected = table.getSelectedRow() >= 0;
                 openButton.setEnabled(selected);
                 downloadButton.setEnabled(selected);
-                studyButton.setEnabled(selected);
             }
         });
         search.getDocument().addDocumentListener(new DocumentListener() {
@@ -218,12 +213,6 @@ public final class DigitalLibraryFrame extends JFrame {
         if (viewRow < 0) return null;
         int row = table.convertRowIndexToModel(viewRow);
         return row >= 0 && row < rows.size() ? rows.get(row) : null;
-    }
-
-    private void openStudyMaterials() {
-        Document d = selected();
-        if (d == null) return;
-        new StudyMaterialFrame(d).setVisible(true);
     }
 
     private void openSelected() {
