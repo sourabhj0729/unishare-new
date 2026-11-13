@@ -138,7 +138,14 @@ public class DashboardFrame extends JFrame {
         hallOfFame.setAlignmentX(0f);
         hallOfFame.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         hallOfFame.setToolTipText("View top contributors, lenders and reliable borrowers");
-        hallOfFame.addActionListener(e -> new CommunityFrame().setVisible(true));
+        hallOfFame.addActionListener(e -> {
+            CommunityFrame frame = new CommunityFrame();
+            frame.setVisible(true);
+            frame.setAlwaysOnTop(true);
+            frame.toFront();
+            frame.requestFocus();
+            frame.setAlwaysOnTop(false);
+        });
         p.add(hallOfFame);
         p.add(Box.createVerticalStrut(6));
 
