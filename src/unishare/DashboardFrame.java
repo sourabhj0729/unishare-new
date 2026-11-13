@@ -134,6 +134,14 @@ public class DashboardFrame extends JFrame {
             p.add(Box.createVerticalStrut(6));
         }
 
+        Ui.Button hallOfFame = new Ui.Button("Community Hall of Fame", Ui.Button.Kind.NAV);
+        hallOfFame.setAlignmentX(0f);
+        hallOfFame.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        hallOfFame.setToolTipText("View top contributors, lenders and reliable borrowers");
+        hallOfFame.addActionListener(e -> new CommunityFrame().setVisible(true));
+        p.add(hallOfFame);
+        p.add(Box.createVerticalStrut(6));
+
         p.add(Box.createVerticalGlue());
 
         JPanel user = new JPanel(new BorderLayout(12, 0));
