@@ -68,6 +68,11 @@ public class DashboardFrame extends JFrame {
     private final List<Models.Resource> rows = new ArrayList<>();
     private final List<String> categoryNames = new ArrayList<>();
     private final List<Ui.Button> navButtons = new ArrayList<>();
+    private final List<Ui.Button> allNavButtons = new ArrayList<>();
+    private CardLayout pageLayout;
+    private JPanel pageHost;
+    private MarketplaceFrame marketplacePage;
+    private Ui.Button activeNavButton;
     private View view = View.ALL;
     private boolean loadingFilters;
 
@@ -99,10 +104,24 @@ public class DashboardFrame extends JFrame {
 
         JPanel root = new JPanel(new BorderLayout());
         root.add(buildSidebar(), BorderLayout.WEST);
-        root.add(buildMain(), BorderLayout.CENTER);
+        pageLayout = new CardLayout();
+        pageHost = new JPanel(pageLayout);
+        pageHost.add(buildHomePage(), "home");
+        pageHost.add(buildMain(), "resources");
+        marketplacePage = new MarketplaceFrame(me);
+        pageHost.add(marketplacePage, "marketplace");
+        pageHost.add(buildPlaceholderPage("My Cart", "Your shopping cart will be available in the next marketplace phase."), "cart");
+        pageHost.add(buildPlaceholderPage("Wishlist", "Products you save will appear here in the next marketplace phase."), "wishlist");
+        pageHost.add(buildPlaceholderPage("My Orders", "Your purchase history and order tracking will appear here."), "orders");
+        pageHost.add(buildPlaceholderPage("My Listings", "Manage your active and inactive product listings here."), "listings");
+        pageHost.add(buildPlaceholderPage("Seller Dashboard", "Manage sales, incoming orders and inventory from one place."), "seller");
+        pageHost.add(buildPlaceholderPage("My Account", "Your account settings and marketplace profile will appear here."), "account");
+        pageHost.add(buildPlaceholderPage("Admin Dashboard", "Platform administration and moderation tools will appear here."), "admin");
+        root.add(pageHost, BorderLayout.CENTER);
         setContentPane(root);
 
         setView(View.ALL);
+        showPage("home", homeButtonRef());
     }
 
     // ---------------------------------------------------------------- sidebar
@@ -124,41 +143,37 @@ public class DashboardFrame extends JFrame {
         p.add(tag);
         p.add(Box.createVerticalStrut(34));
 
+        Ui.Button home = addNavigationButton(p, "Home", () -> showPage("home", homeButtonRef()), false);
+        p.add(Box.createVerticalStrut(18));
+        addSectionLabel(p, "MARKETPLACE");
+        addNavigationButton(p, "Shop", () -> showPage("marketplace", findNavButton("Shop")), false);
+        addNavigationButton(p, "My Cart", () -> showPage("cart", findNavButton("My Cart")), false);
+        addNavigationButton(p, "Wishlist", () -> showPage("wishlist", findNavButton("Wishlist")), false);
+        addNavigationButton(p, "My Orders", () -> showPage("orders", findNavButton("My Orders")), false);
+        p.add(Box.createVerticalStrut(12));
+        addSectionLabel(p, "SELLER");
+        addNavigationButton(p, "Sell an Item", () -> showPage("marketplace", findNavButton("Sell an Item")), false);
+        addNavigationButton(p, "My Listings", () -> showPage("listings", findNavButton("My Listings")), false);
+        addNavigationButton(p, "Seller Dashboard", () -> showPage("seller", findNavButton("Seller Dashboard")), false);
+        p.add(Box.createVerticalStrut(12));
+        addSectionLabel(p, "BORROW & SHARE");
         for (View v : View.values()) {
-            Ui.Button b = new Ui.Button(v.title, Ui.Button.Kind.NAV);
-            b.setAlignmentX(0f);
-            b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-            b.addActionListener(e -> setView(v));
+            Ui.Button b = addNavigationButton(p, v.title, () -> setView(v), true);
             navButtons.add(b);
-            p.add(b);
-            p.add(Box.createVerticalStrut(6));
         }
+        addNavigationButton(p, "My Account", () -> showPage("account", findNavButton("My Account")), false);
+        Ui.Button admin = addNavigationButton(p, "Admin Dashboard", () -> showPage("admin", findNavButton("Admin Dashboard")), false);
+        admin.setToolTipText("Admin tools will be enabled after role-based access is implemented");
 
-        Ui.Button marketplace = new Ui.Button("Campus Marketplace", Ui.Button.Kind.NAV);
-        marketplace.setAlignmentX(0f);
-        marketplace.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        marketplace.setToolTipText("Buy and sell products with other students");
-        marketplace.addActionListener(e -> {
-            MarketplaceFrame frame = new MarketplaceFrame(me);
-            frame.setVisible(true);
-        });
-        p.add(marketplace);
-        p.add(Box.createVerticalStrut(6));
-
-        Ui.Button hallOfFame = new Ui.Button("Community Hall of Fame", Ui.Button.Kind.NAV);
-        hallOfFame.setAlignmentX(0f);
-        hallOfFame.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        hallOfFame.setToolTipText("View top contributors, lenders and reliable borrowers");
-        hallOfFame.addActionListener(e -> {
+        Ui.Button hallOfFame = addNavigationButton(p, "Community Hall of Fame", () -> {
             CommunityFrame frame = new CommunityFrame();
             frame.setVisible(true);
             frame.setAlwaysOnTop(true);
             frame.toFront();
             frame.requestFocus();
             frame.setAlwaysOnTop(false);
-        });
-        p.add(hallOfFame);
-        p.add(Box.createVerticalStrut(6));
+        }, false);
+        hallOfFame.setToolTipText("View top contributors, lenders and reliable borrowers");
 
         p.add(Box.createVerticalGlue());
 
@@ -205,6 +220,110 @@ public class DashboardFrame extends JFrame {
         });
         p.add(logout);
         return p;
+    }
+
+    private Ui.Button addNavigationButton(JPanel sidebar, String text, Runnable action, boolean resourceNav) {
+        Ui.Button button = new Ui.Button(text, Ui.Button.Kind.NAV);
+        button.setAlignmentX(0f);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        button.addActionListener(e -> action.run());
+        allNavButtons.add(button);
+        sidebar.add(button);
+        sidebar.add(Box.createVerticalStrut(4));
+        return button;
+    }
+
+    private void addSectionLabel(JPanel sidebar, String text) {
+        JLabel label = Ui.label(text, Font.BOLD, 10f, new Color(0x818CF8));
+        label.setBorder(BorderFactory.createEmptyBorder(4, 5, 7, 0));
+        label.setAlignmentX(0f);
+        sidebar.add(label);
+    }
+
+    private Ui.Button homeButtonRef() {
+        return allNavButtons.isEmpty() ? null : allNavButtons.get(0);
+    }
+
+    private void showPage(String key, Ui.Button button) {
+        pageLayout.show(pageHost, key);
+        if (button != null) {
+            if (activeNavButton != null && activeNavButton != button) activeNavButton.setActive(false);
+            activeNavButton = button;
+            activeNavButton.setActive(true);
+        }
+    }
+
+    private JComponent buildHomePage() {
+        JPanel page = new JPanel(new BorderLayout(0, 22));
+        page.setBackground(Ui.BG);
+        page.setBorder(BorderFactory.createEmptyBorder(34, 38, 32, 38));
+        JPanel intro = new JPanel();
+        intro.setOpaque(false);
+        intro.setLayout(new BoxLayout(intro, BoxLayout.Y_AXIS));
+        intro.add(Ui.label("Welcome to UniShare", Font.BOLD, 30f, Ui.TEXT));
+        intro.add(Box.createVerticalStrut(8));
+        intro.add(Ui.label("Your campus hub to shop, sell, borrow and share.", Font.PLAIN, 15f, Ui.MUTED));
+        page.add(intro, BorderLayout.NORTH);
+
+        JPanel cards = new JPanel(new GridLayout(2, 2, 18, 18));
+        cards.setOpaque(false);
+        cards.add(homeActionCard("Explore Marketplace", "Discover products listed by students.", "Open Shop",
+                () -> showPage("marketplace", findNavButton("Shop"))));
+        cards.add(homeActionCard("Sell on Campus", "Create a listing and reach other students.", "Start selling",
+                () -> showPage("marketplace", findNavButton("Sell an Item"))));
+        cards.add(homeActionCard("Borrow & Share", "Find resources shared by your campus community.", "Browse resources",
+                () -> setView(View.ALL)));
+        cards.add(homeActionCard("Your Activity", "Access your orders, wishlist and listings.", "View orders",
+                () -> showPage("orders", findNavButton("My Orders"))));
+        page.add(cards, BorderLayout.CENTER);
+        page.add(Ui.label("One account • One campus community • Multiple ways to share", Font.PLAIN, 12f, Ui.MUTED), BorderLayout.SOUTH);
+        return page;
+    }
+
+    private JComponent homeActionCard(String title, String description, String actionText, Runnable action) {
+        Ui.Card card = new Ui.Card(18, Ui.CARD);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
+        JLabel heading = Ui.label(title, Font.BOLD, 19f, Ui.TEXT);
+        JLabel detail = Ui.label(description, Font.PLAIN, 13f, Ui.MUTED);
+        heading.setAlignmentX(0f);
+        detail.setAlignmentX(0f);
+        card.add(heading);
+        card.add(Box.createVerticalStrut(9));
+        card.add(detail);
+        card.add(Box.createVerticalGlue());
+        Ui.Button button = new Ui.Button(actionText, Ui.Button.Kind.PRIMARY);
+        button.setAlignmentX(0f);
+        button.addActionListener(e -> action.run());
+        card.add(button);
+        return card;
+    }
+
+    private Ui.Button findNavButton(String text) {
+        for (Ui.Button button : allNavButtons) if (text.equals(button.getText())) return button;
+        return null;
+    }
+
+    private JComponent buildPlaceholderPage(String title, String description) {
+        JPanel page = new JPanel(new GridBagLayout());
+        page.setBackground(Ui.BG);
+        Ui.Card card = new Ui.Card(18, Ui.CARD);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createEmptyBorder(34, 42, 34, 42));
+        JLabel heading = Ui.label(title, Font.BOLD, 25f, Ui.TEXT);
+        JLabel detail = Ui.label(description, Font.PLAIN, 14f, Ui.MUTED);
+        heading.setAlignmentX(0f);
+        detail.setAlignmentX(0f);
+        card.add(heading);
+        card.add(Box.createVerticalStrut(12));
+        card.add(detail);
+        card.add(Box.createVerticalStrut(22));
+        Ui.Button shop = new Ui.Button("Continue to Shop", Ui.Button.Kind.PRIMARY);
+        shop.setAlignmentX(0f);
+        shop.addActionListener(e -> showPage("marketplace", findNavButton("Shop")));
+        card.add(shop);
+        page.add(card);
+        return page;
     }
 
     // -------------------------------------------------------------- main area
@@ -408,6 +527,10 @@ public class DashboardFrame extends JFrame {
         view = v;
         View[] all = View.values();
         for (int i = 0; i < all.length; i++) navButtons.get(i).setActive(all[i] == v);
+        Ui.Button selectedButton = navButtons.get(v.ordinal());
+        if (activeNavButton != null && activeNavButton != selectedButton) activeNavButton.setActive(false);
+        activeNavButton = selectedButton;
+        pageLayout.show(pageHost, "resources");
         titleLbl.setText(v.title);
         subtitleLbl.setText(v.subtitle);
         loadCategories();
