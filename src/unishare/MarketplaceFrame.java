@@ -1,6 +1,8 @@
 package unishare;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.Cursor;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -16,6 +18,8 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -23,96 +27,225 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
 /** Buy-and-sell marketplace embedded in the existing UniShare desktop application. */
-public final class MarketplaceFrame extends JFrame {
+public final class MarketplaceFrame extends JPanel {
     private final Models.User me;
     private final MarketplaceDAO dao=new MarketplaceDAO();
     private final List<MarketplaceDAO.Product> products=new ArrayList<>();
     private final Map<Integer,Integer> cart=new LinkedHashMap<>();
-    private final DefaultTableModel model=new DefaultTableModel(
-        new String[]{"ID","Product","Category","Seller","Price (INR)","Stock"},0) {
-        @Override public boolean isCellEditable(int r,int c){return false;}
-    };
-    private final JTable table=new JTable(model);
+    private final JPanel productsGrid = new JPanel(new GridLayout(0, 3, 18, 18));
+    private MarketplaceDAO.Product selectedProduct;
+    private Ui.Button cartButton;
     private final JTextField search=new JTextField(22);
     private final JComboBox<String> category=new JComboBox<>();
     private final JLabel status=Ui.label("Your campus store",Font.PLAIN,12f,Ui.MUTED);
     private boolean loadingCategories;
 
     public MarketplaceFrame(Models.User me) {
-        super("UniShare — Campus Marketplace");
         this.me=me;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1050,650);
-        setMinimumSize(new Dimension(850,550));
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+        setBackground(Ui.BG);
         build();
         reload();
     }
 
     private void build() {
-        JPanel root=new JPanel(new BorderLayout(12,12));
+        JPanel root = new JPanel(new BorderLayout(0, 18));
         root.setBackground(Ui.BG);
-        root.setBorder(BorderFactory.createEmptyBorder(22,24,20,24));
-        JPanel top=new JPanel(new BorderLayout(8,8)); top.setOpaque(false);
-        JPanel heading=new JPanel(new BorderLayout()); heading.setOpaque(false);
-        JPanel labels=new JPanel(); labels.setOpaque(false); labels.setLayout(new javax.swing.BoxLayout(labels,javax.swing.BoxLayout.Y_AXIS));
-        labels.add(Ui.label("Campus Marketplace",Font.BOLD,25f,Ui.TEXT));
-        labels.add(Ui.label("Buy and sell items with other students",Font.PLAIN,13f,Ui.MUTED));
-        heading.add(labels,BorderLayout.WEST);
-        JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0)); actions.setOpaque(false);
-        Ui.Button sell=new Ui.Button("＋ Sell an item",Ui.Button.Kind.PRIMARY);
-        Ui.Button add=new Ui.Button("Add to cart",Ui.Button.Kind.SECONDARY);
-        Ui.Button checkout=new Ui.Button("Checkout",Ui.Button.Kind.PRIMARY);
-        Ui.Button orders=new Ui.Button("My orders",Ui.Button.Kind.GHOST);
-        sell.addActionListener(e->sellItem()); add.addActionListener(e->addToCart());
-        checkout.addActionListener(e->checkout()); orders.addActionListener(e->showOrders());
-        actions.add(sell); actions.add(add); actions.add(checkout); actions.add(orders);
-        heading.add(actions,BorderLayout.EAST);
-        top.add(heading,BorderLayout.NORTH);
-        JPanel filters=new JPanel(new FlowLayout(FlowLayout.LEFT,8,0)); filters.setOpaque(false);
-        search.setFont(Ui.font(Font.PLAIN,13f)); Ui.height(search,38);
-        category.addItem("All categories"); Ui.style(category); Ui.height(category,38);
-        Ui.Button find=new Ui.Button("Search",Ui.Button.Kind.SECONDARY);
-        find.addActionListener(e->reload()); search.addActionListener(e->reload());
-        category.addActionListener(e->{if(!loadingCategories && category.getSelectedItem()!=null) reload();});
-        filters.add(search); filters.add(category); filters.add(find);
-        top.add(filters,BorderLayout.SOUTH);
-        table.setRowHeight(36); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setFillsViewportHeight(true); table.setFont(Ui.font(Font.PLAIN,13f));
-        table.getTableHeader().setFont(Ui.font(Font.BOLD,12f));
-        JScrollPane scroll=new JScrollPane(table); scroll.setBorder(BorderFactory.createLineBorder(Ui.BORDER));
-        JPanel bottom=new JPanel(new BorderLayout()); bottom.setOpaque(false);
-        bottom.add(status,BorderLayout.WEST);
-        root.add(top,BorderLayout.NORTH); root.add(scroll,BorderLayout.CENTER); root.add(bottom,BorderLayout.SOUTH);
-        setContentPane(root);
+        root.setBorder(BorderFactory.createEmptyBorder(26, 30, 22, 30));
+        JPanel heading = new JPanel(new BorderLayout());
+        heading.setOpaque(false);
+        JPanel titles = new JPanel();
+        titles.setOpaque(false);
+        titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
+        titles.add(Ui.label("UNISHARE  /  CAMPUS MARKETPLACE", Font.BOLD, 10f, Ui.PRIMARY));
+        titles.add(Box.createVerticalStrut(7));
+        titles.add(Ui.label("Find something useful.", Font.BOLD, 29f, Ui.TEXT));
+        titles.add(Box.createVerticalStrut(4));
+        titles.add(Ui.label("Buy, sell and discover items shared by students on your campus.", Font.PLAIN, 14f, Ui.MUTED));
+        heading.add(titles, BorderLayout.WEST);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 9, 8));
+        actions.setOpaque(false);
+        Ui.Button sell = new Ui.Button("+  Sell an item", Ui.Button.Kind.PRIMARY);
+        cartButton = new Ui.Button("Cart (" + cartCount() + ")", Ui.Button.Kind.SECONDARY);
+        Ui.Button orders = new Ui.Button("My orders", Ui.Button.Kind.SECONDARY);
+        sell.addActionListener(e -> sellItem());
+        cartButton.addActionListener(e -> showCartSummary());
+        orders.addActionListener(e -> showOrders());
+        actions.add(cartButton); actions.add(orders); actions.add(sell);
+        heading.add(actions, BorderLayout.EAST);
+
+        JPanel searchPanel = new JPanel(new BorderLayout(12, 0));
+        searchPanel.setBackground(Color.WHITE);
+        searchPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Ui.BORDER),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+        search.setFont(Ui.font(Font.PLAIN, 14f));
+        search.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+        search.setToolTipText("Search by product, category or seller");
+        Ui.height(search, 40);
+        category.addItem("All categories"); Ui.style(category); Ui.height(category, 40);
+        category.setPreferredSize(new Dimension(180, 40));
+        Ui.Button find = new Ui.Button("Search", Ui.Button.Kind.PRIMARY);
+        find.addActionListener(e -> reload()); search.addActionListener(e -> reload());
+        category.addActionListener(e -> { if (!loadingCategories && category.getSelectedItem() != null) reload(); });
+        searchPanel.add(search, BorderLayout.CENTER);
+        JPanel rightFilters = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        rightFilters.setOpaque(false); rightFilters.add(category); rightFilters.add(find);
+        searchPanel.add(rightFilters, BorderLayout.EAST);
+
+        JPanel section = new JPanel(new BorderLayout());
+        section.setOpaque(false);
+        section.add(Ui.label("Recently listed", Font.BOLD, 19f, Ui.TEXT), BorderLayout.WEST);
+        section.add(status, BorderLayout.EAST);
+        productsGrid.setOpaque(false);
+        productsGrid.setBorder(BorderFactory.createEmptyBorder(2, 2, 8, 2));
+        JScrollPane scroll = new JScrollPane(productsGrid);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setBackground(Ui.BG);
+        scroll.getVerticalScrollBar().setUnitIncrement(18);
+        JPanel center = new JPanel(new BorderLayout(0, 14));
+        center.setOpaque(false); center.add(section, BorderLayout.NORTH); center.add(scroll, BorderLayout.CENTER);
+        JPanel content = new JPanel(new BorderLayout(0, 16));
+        content.setOpaque(false); content.add(searchPanel, BorderLayout.NORTH); content.add(center, BorderLayout.CENTER);
+        root.add(heading, BorderLayout.NORTH); root.add(content, BorderLayout.CENTER);
+        add(root, BorderLayout.CENTER);
+    }
+
+    private int cartCount() {
+        return cart.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    private void showCartSummary() {
+        if (cart.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Your cart is empty. Add a product to get started.", "My Cart", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        StringBuilder summary = new StringBuilder("Items in your cart:\n\n");
+        BigDecimal total = BigDecimal.ZERO;
+        for (Map.Entry<Integer,Integer> entry : cart.entrySet()) {
+            for (MarketplaceDAO.Product p : products) if (p.id == entry.getKey()) {
+                summary.append(p.title).append("  × ").append(entry.getValue()).append("  —  ₹")
+                    .append(p.price.multiply(BigDecimal.valueOf(entry.getValue())).toPlainString()).append("\\n");
+                total = total.add(p.price.multiply(BigDecimal.valueOf(entry.getValue())));
+            }
+        }
+        summary.append("\nSubtotal: ₹").append(total.toPlainString());
+        Object[] options = {"Continue shopping", "Checkout"};
+        int choice = JOptionPane.showOptionDialog(this, summary.toString(), "My Cart",
+            JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (choice == 1) checkout();
+    }
+
+    private JComponent productCard(MarketplaceDAO.Product product) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(0xE3EAEB)),
+            BorderFactory.createEmptyBorder(0, 0, 12, 0)));
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JPanel artwork = new JPanel(new BorderLayout());
+        artwork.setPreferredSize(new Dimension(220, 132));
+        artwork.setBackground(categoryColor(product.category));
+        JLabel categoryLabel = Ui.label(product.category.toUpperCase(), Font.BOLD, 11f, Color.WHITE);
+        categoryLabel.setBorder(BorderFactory.createEmptyBorder(12, 14, 0, 0));
+        artwork.add(categoryLabel, BorderLayout.NORTH);
+        JLabel symbol = Ui.label(categorySymbol(product.category), Font.BOLD, 42f, Color.WHITE);
+        symbol.setHorizontalAlignment(SwingConstants.CENTER);
+        artwork.add(symbol, BorderLayout.CENTER);
+
+        JPanel details = new JPanel();
+        details.setBackground(Color.WHITE);
+        details.setBorder(BorderFactory.createEmptyBorder(12, 14, 0, 14));
+        details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
+        JLabel price = Ui.label("₹" + product.price.toPlainString(), Font.BOLD, 21f, Ui.TEXT);
+        JLabel name = Ui.label(product.title, Font.BOLD, 14f, Ui.TEXT);
+        JLabel meta = Ui.label(product.category + "  ·  " + product.stock + " available", Font.PLAIN, 11f, Ui.MUTED);
+        JLabel seller = Ui.label("Listed by " + product.sellerName, Font.PLAIN, 12f, Ui.MUTED);
+        price.setAlignmentX(0f); name.setAlignmentX(0f); meta.setAlignmentX(0f); seller.setAlignmentX(0f);
+        details.add(price); details.add(Box.createVerticalStrut(6)); details.add(name);
+        details.add(Box.createVerticalStrut(5)); details.add(meta);
+        details.add(Box.createVerticalStrut(7)); details.add(seller);
+        details.add(Box.createVerticalStrut(12));
+        JPanel row = new JPanel(new BorderLayout(8, 0)); row.setOpaque(false);
+        row.add(Ui.label("●  Campus listing", Font.BOLD, 10f, Ui.SUCCESS), BorderLayout.WEST);
+        Ui.Button add = new Ui.Button("Add to cart", Ui.Button.Kind.PRIMARY);
+        add.addActionListener(e -> { selectedProduct = product; addToCart(); });
+        row.add(add, BorderLayout.EAST); details.add(row);
+        card.add(artwork, BorderLayout.NORTH); card.add(details, BorderLayout.CENTER);
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getSource() == card) { selectedProduct = product; showProductDetails(product); }
+            }
+        });
+        return card;
+    }
+
+    private Color categoryColor(String category) {
+        String c = category == null ? "" : category.toLowerCase();
+        if (c.contains("book")) return new Color(0xB77945);
+        if (c.contains("elect")) return new Color(0x477F8B);
+        if (c.contains("sport")) return new Color(0x4F8B70);
+        if (c.contains("hostel") || c.contains("furn")) return new Color(0x8873A8);
+        if (c.contains("station")) return new Color(0xC28A46);
+        return new Color(0x398E82);
+    }
+
+    private String categorySymbol(String category) {
+        String c = category == null ? "" : category.toLowerCase();
+        if (c.contains("book")) return "Aa";
+        if (c.contains("elect")) return "⌁";
+        if (c.contains("sport")) return "↗";
+        if (c.contains("hostel") || c.contains("furn")) return "⌂";
+        if (c.contains("station")) return "✎";
+        return "U";
+    }
+
+    private void showProductDetails(MarketplaceDAO.Product p) {
+        String detail = p.title + "\n\n" + p.description + "\n\nCategory: " + p.category
+            + "\nSeller: " + p.sellerName + "\nPrice: ₹" + p.price.toPlainString()
+            + "\\nAvailable: " + p.stock;
+        Object[] options = {"Close", "Add to cart"};
+        int choice = JOptionPane.showOptionDialog(this, detail, "Product details",
+            JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (choice == 1) addToCart();
     }
 
     private void reload() {
         try {
-            Object selected=category.getSelectedItem();
-            List<String> cats=dao.categories();
-            loadingCategories=true;
+            Object selected = category.getSelectedItem();
+            List<String> cats = dao.categories();
+            loadingCategories = true;
             category.removeAllItems(); category.addItem("All categories");
-            for(String c:cats) category.addItem(c);
-            if(selected!=null) category.setSelectedItem(selected);
-            loadingCategories=false;
+            for (String name : cats) category.addItem(name);
+            if (selected != null) category.setSelectedItem(selected);
+            loadingCategories = false;
             products.clear();
-            products.addAll(dao.products(search.getText(),(String)category.getSelectedItem()));
-            model.setRowCount(0);
-            for(MarketplaceDAO.Product p:products)
-                model.addRow(new Object[]{p.id,p.title,p.category,p.sellerName,p.price.toPlainString(),p.stock});
-            status.setText(products.size()+" products available   •   "+cart.values().stream().mapToInt(Integer::intValue).sum()+" items in cart");
-        } catch(SQLException ex) { error("Could not load marketplace: "+ex.getMessage()); }
+            products.addAll(dao.products(search.getText(), (String) category.getSelectedItem()));
+            productsGrid.removeAll();
+            productsGrid.setLayout(new GridLayout(0, 3, 18, 18));
+            for (MarketplaceDAO.Product p : products) productsGrid.add(productCard(p));
+            if (products.isEmpty()) {
+                productsGrid.setLayout(new BorderLayout());
+                JPanel empty = new JPanel();
+                empty.setOpaque(false); empty.setLayout(new BoxLayout(empty, BoxLayout.Y_AXIS));
+                JLabel title = Ui.label("No products found", Font.BOLD, 20f, Ui.TEXT);
+                JLabel note = Ui.label("Try another search or be the first student to list this item.", Font.PLAIN, 13f, Ui.MUTED);
+                title.setAlignmentX(0f); note.setAlignmentX(0f);
+                empty.add(title); empty.add(Box.createVerticalStrut(8)); empty.add(note);
+                productsGrid.add(empty, BorderLayout.CENTER);
+            }
+            status.setText(products.size() + " items  ·  " + cartCount() + " in cart");
+            productsGrid.revalidate(); productsGrid.repaint();
+        } catch (SQLException ex) {
+            loadingCategories = false;
+            error("Could not load marketplace: " + ex.getMessage());
+        }
     }
 
-    private MarketplaceDAO.Product selected() {
-        int row=table.getSelectedRow();
-        return row<0 || row>=products.size()?null:products.get(row);
-    }
+    private MarketplaceDAO.Product selected() { return selectedProduct; }
 
     private void addToCart() {
         MarketplaceDAO.Product p=selected();
@@ -124,7 +257,9 @@ public final class MarketplaceFrame extends JFrame {
         try{qty=Integer.parseInt(raw.trim());}catch(NumberFormatException ex){error("Enter a whole-number quantity.");return;}
         if(qty<1 || qty>p.stock){error("Quantity must be between 1 and "+p.stock+".");return;}
         cart.put(p.id,cart.getOrDefault(p.id,0)+qty);
-        status.setText(cart.values().stream().mapToInt(Integer::intValue).sum()+" items in cart");
+        status.setText(products.size() + " items  ·  " + cartCount() + " in cart");
+        if (cartButton != null) cartButton.setText("Cart (" + cartCount() + ")");
+        JOptionPane.showMessageDialog(this, p.title + " added to your cart.", "Added to cart", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void sellItem() {
@@ -145,7 +280,7 @@ public final class MarketplaceFrame extends JFrame {
         desc.setWrapStyleWord(true);
         desc.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
-        JDialog dialog = new JDialog(this, "Create campus listing", true);
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Create campus listing", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         JPanel root = new JPanel(new BorderLayout(0, 0));
