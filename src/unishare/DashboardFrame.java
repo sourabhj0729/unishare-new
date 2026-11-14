@@ -103,7 +103,9 @@ public class DashboardFrame extends JFrame {
         setLocationRelativeTo(null);
 
         JPanel root = new JPanel(new BorderLayout());
-        root.add(buildSidebar(), BorderLayout.WEST);
+        root.add(buildTopBar(), BorderLayout.NORTH);
+        JPanel workspace = new JPanel(new BorderLayout());
+        workspace.add(buildSidebar(), BorderLayout.WEST);
         pageLayout = new CardLayout();
         pageHost = new JPanel(pageLayout);
         pageHost.add(buildHomePage(), "home");
@@ -117,11 +119,38 @@ public class DashboardFrame extends JFrame {
         pageHost.add(buildPlaceholderPage("Seller Dashboard", "Manage sales, incoming orders and inventory from one place."), "seller");
         pageHost.add(buildPlaceholderPage("My Account", "Your account settings and marketplace profile will appear here."), "account");
         pageHost.add(buildPlaceholderPage("Admin Dashboard", "Platform administration and moderation tools will appear here."), "admin");
-        root.add(pageHost, BorderLayout.CENTER);
+        workspace.add(pageHost, BorderLayout.CENTER);
+        root.add(workspace, BorderLayout.CENTER);
         setContentPane(root);
 
         setView(View.ALL);
         showPage("home", homeButtonRef());
+    }
+
+    // ---------------------------------------------------------------- top bar
+
+    private JComponent buildTopBar() {
+        JPanel bar = new JPanel(new BorderLayout(18, 0));
+        bar.setBackground(Color.WHITE);
+        bar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Ui.BORDER),
+            BorderFactory.createEmptyBorder(12, 24, 12, 24)));
+        JPanel brand = new JPanel();
+        brand.setOpaque(false);
+        brand.setLayout(new BoxLayout(brand, BoxLayout.Y_AXIS));
+        brand.add(Ui.label("UniShare", Font.BOLD, 22f, new Color(0x123C3A)));
+        brand.add(Ui.label("CAMPUS MARKETPLACE & RESOURCE HUB", Font.BOLD, 9f, Ui.PRIMARY));
+        bar.add(brand, BorderLayout.WEST);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 2));
+        right.setOpaque(false);
+        JLabel campus = Ui.label("Your campus. Your community.", Font.PLAIN, 12f, Ui.MUTED);
+        JLabel user = Ui.label(me.fullName, Font.BOLD, 13f, Ui.TEXT);
+        right.add(campus);
+        right.add(new JLabel("  "));
+        right.add(user);
+        bar.add(right, BorderLayout.EAST);
+        return bar;
     }
 
     // ---------------------------------------------------------------- sidebar
@@ -133,15 +162,7 @@ public class DashboardFrame extends JFrame {
         p.setBorder(BorderFactory.createEmptyBorder(30, 18, 22, 18));
         p.setPreferredSize(new Dimension(250, 0));
 
-        JLabel logo = Ui.label("Unishare", Font.BOLD, 26f, Color.WHITE);
-        JLabel tag = Ui.label("Campus resource sharing", Font.PLAIN, 12f, new Color(0xA5B4FC));
-        logo.setAlignmentX(0f);
-        tag.setAlignmentX(0f);
-        logo.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
-        tag.setBorder(BorderFactory.createEmptyBorder(2, 4, 0, 0));
-        p.add(logo);
-        p.add(tag);
-        p.add(Box.createVerticalStrut(34));
+        p.add(Box.createVerticalStrut(18));
 
         Ui.Button home = addNavigationButton(p, "Home", () -> showPage("home", homeButtonRef()), false);
         p.add(Box.createVerticalStrut(18));
@@ -240,7 +261,7 @@ public class DashboardFrame extends JFrame {
     }
 
     private void addSectionLabel(JPanel sidebar, String text) {
-        JLabel label = Ui.label(text, Font.BOLD, 10f, new Color(0x818CF8));
+        JLabel label = Ui.label(text, Font.BOLD, 10f, new Color(0x77D9C9));
         label.setBorder(BorderFactory.createEmptyBorder(4, 5, 7, 0));
         label.setAlignmentX(0f);
         sidebar.add(label);
@@ -262,27 +283,58 @@ public class DashboardFrame extends JFrame {
     private JComponent buildHomePage() {
         JPanel page = new JPanel(new BorderLayout(0, 22));
         page.setBackground(Ui.BG);
-        page.setBorder(BorderFactory.createEmptyBorder(34, 38, 32, 38));
-        JPanel intro = new JPanel();
-        intro.setOpaque(false);
-        intro.setLayout(new BoxLayout(intro, BoxLayout.Y_AXIS));
-        intro.add(Ui.label("Welcome to UniShare", Font.BOLD, 30f, Ui.TEXT));
-        intro.add(Box.createVerticalStrut(8));
-        intro.add(Ui.label("Your campus hub to shop, sell, borrow and share.", Font.PLAIN, 15f, Ui.MUTED));
-        page.add(intro, BorderLayout.NORTH);
+        page.setBorder(BorderFactory.createEmptyBorder(28, 34, 28, 34));
 
-        JPanel cards = new JPanel(new GridLayout(2, 2, 18, 18));
+        JPanel hero = new JPanel(new BorderLayout(24, 0));
+        hero.setBackground(new Color(0xE7F7F3));
+        hero.setBorder(BorderFactory.createEmptyBorder(30, 34, 30, 30));
+        JPanel copy = new JPanel();
+        copy.setOpaque(false);
+        copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
+        JLabel eyebrow = Ui.label("WELCOME TO UNISHARE", Font.BOLD, 10f, Ui.PRIMARY);
+        JLabel headline = Ui.label("Buy. Sell. Connect.", Font.BOLD, 31f, new Color(0x123C3A));
+        JLabel secondLine = Ui.label("Grow together.", Font.BOLD, 31f, Ui.PRIMARY);
+        JLabel description = Ui.label("Your campus hub for books, electronics, essentials and shared resources.", Font.PLAIN, 14f, new Color(0x47615E));
+        eyebrow.setAlignmentX(0f); headline.setAlignmentX(0f); secondLine.setAlignmentX(0f); description.setAlignmentX(0f);
+        copy.add(eyebrow); copy.add(Box.createVerticalStrut(12)); copy.add(headline); copy.add(secondLine);
+        copy.add(Box.createVerticalStrut(10)); copy.add(description); copy.add(Box.createVerticalStrut(18));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttons.setOpaque(false);
+        Ui.Button explore = new Ui.Button("Explore items", Ui.Button.Kind.PRIMARY);
+        Ui.Button sell = new Ui.Button("Sell something", Ui.Button.Kind.SECONDARY);
+        explore.addActionListener(e -> showPage("marketplace", findNavButton("Shop")));
+        sell.addActionListener(e -> showPage("marketplace", findNavButton("Sell an Item")));
+        buttons.add(explore); buttons.add(sell);
+        copy.add(buttons);
+        JPanel art = new JPanel(new GridBagLayout());
+        art.setOpaque(false);
+        Ui.Card artCard = new Ui.Card(22, Color.WHITE);
+        artCard.setLayout(new BoxLayout(artCard, BoxLayout.Y_AXIS));
+        artCard.setBorder(BorderFactory.createEmptyBorder(22, 28, 22, 28));
+        JLabel icon = Ui.label("↗", Font.BOLD, 52f, Ui.PRIMARY);
+        icon.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel artTitle = Ui.label("Same campus.", Font.BOLD, 20f, new Color(0x123C3A));
+        JLabel artSubtitle = Ui.label("More possibilities.", Font.BOLD, 17f, Ui.PRIMARY);
+        artTitle.setAlignmentX(Component.CENTER_ALIGNMENT); artSubtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        artCard.add(icon); artCard.add(Box.createVerticalStrut(6)); artCard.add(artTitle); artCard.add(artSubtitle);
+        art.add(artCard);
+        hero.add(copy, BorderLayout.CENTER);
+        hero.add(art, BorderLayout.EAST);
+
+        JPanel section = new JPanel(new BorderLayout());
+        section.setOpaque(false);
+        section.add(Ui.label("Explore UniShare", Font.BOLD, 20f, Ui.TEXT), BorderLayout.NORTH);
+        JPanel cards = new JPanel(new GridLayout(1, 3, 16, 0));
         cards.setOpaque(false);
-        cards.add(homeActionCard("Explore Marketplace", "Discover products listed by students.", "Open Shop",
+        cards.add(homeActionCard("Shop on campus", "Discover useful items listed by other students.", "Browse products",
                 () -> showPage("marketplace", findNavButton("Shop"))));
-        cards.add(homeActionCard("Sell on Campus", "Create a listing and reach other students.", "Start selling",
+        cards.add(homeActionCard("Sell an item", "Give your unused items a second life.", "Create listing",
                 () -> showPage("marketplace", findNavButton("Sell an Item"))));
-        cards.add(homeActionCard("Borrow & Share", "Find resources shared by your campus community.", "Browse resources",
+        cards.add(homeActionCard("Borrow & share", "Find resources shared by your campus community.", "Browse resources",
                 () -> setView(View.ALL)));
-        cards.add(homeActionCard("Your Activity", "Access your orders, wishlist and listings.", "View orders",
-                () -> showPage("orders", findNavButton("My Orders"))));
-        page.add(cards, BorderLayout.CENTER);
-        page.add(Ui.label("One account • One campus community • Multiple ways to share", Font.PLAIN, 12f, Ui.MUTED), BorderLayout.SOUTH);
+        section.add(cards, BorderLayout.CENTER);
+        page.add(hero, BorderLayout.NORTH);
+        page.add(section, BorderLayout.CENTER);
         return page;
     }
 
