@@ -57,30 +57,3 @@ java -cp "out;lib/*" unishare.Main
 ```
 
 On Linux/macOS, use `:` instead of `;` in the Java classpath.
-
-
----
-
-## Web campus marketplace prototype
-
-A responsive browser-based marketplace prototype is available in `web/index.html`. It is added alongside the original Java Swing application; the existing desktop code and database schema are not replaced.
-
-### Run the web prototype
-
-- Open `web/index.html` directly in a modern browser, or
-- From the repository root run `python -m http.server 8000` and open `http://localhost:8000/web/`.
-
-### Prototype interactions
-
-- Browse seeded campus products.
-- Search by product name, category, seller, or description.
-- Filter by category and sort by price.
-- Add items to the bag and adjust quantities.
-- Save/remove wishlist items.
-- Create a listing using the sell form.
-- Complete a demo checkout with a campus pickup point.
-- View demo order history.
-
-### Prototype limitations
-
-This is currently a frontend-only demo. Its listings, bag, wishlist, and orders are stored in the current browser's localStorage and are not shared with other users. Authentication, college email verification, server-side persistence, admin moderation, image uploads, seller order processing, inventory locking, and online payments are not implemented. No real payments are collected. The next engineering step is a Spring Boot REST API and MySQL integration.
