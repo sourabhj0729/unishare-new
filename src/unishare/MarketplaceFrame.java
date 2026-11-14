@@ -39,6 +39,7 @@ public final class MarketplaceFrame extends JPanel {
     private final Map<Integer,Integer> cart=new LinkedHashMap<>();
     private final JPanel productsGrid = new JPanel(new GridLayout(0, 3, 18, 18));
     private MarketplaceDAO.Product selectedProduct;
+    private Ui.Button cartButton;
     private final JTextField search=new JTextField(22);
     private final JComboBox<String> category=new JComboBox<>();
     private final JLabel status=Ui.label("Your campus store",Font.PLAIN,12f,Ui.MUTED);
@@ -70,7 +71,7 @@ public final class MarketplaceFrame extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 9, 8));
         actions.setOpaque(false);
         Ui.Button sell = new Ui.Button("+  Sell an item", Ui.Button.Kind.PRIMARY);
-        Ui.Button cartButton = new Ui.Button("Cart (" + cartCount() + ")", Ui.Button.Kind.SECONDARY);
+        cartButton = new Ui.Button("Cart (" + cartCount() + ")", Ui.Button.Kind.SECONDARY);
         Ui.Button orders = new Ui.Button("My orders", Ui.Button.Kind.SECONDARY);
         sell.addActionListener(e -> sellItem());
         cartButton.addActionListener(e -> showCartSummary());
@@ -123,7 +124,7 @@ public final class MarketplaceFrame extends JPanel {
             JOptionPane.showMessageDialog(this, "Your cart is empty. Add a product to get started.", "My Cart", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        StringBuilder summary = new StringBuilder("Items in your cart:\\n\\n");
+        StringBuilder summary = new StringBuilder("Items in your cart:\n\n");
         BigDecimal total = BigDecimal.ZERO;
         for (Map.Entry<Integer,Integer> entry : cart.entrySet()) {
             for (MarketplaceDAO.Product p : products) if (p.id == entry.getKey()) {
@@ -132,7 +133,7 @@ public final class MarketplaceFrame extends JPanel {
                 total = total.add(p.price.multiply(BigDecimal.valueOf(entry.getValue())));
             }
         }
-        summary.append("\\nSubtotal: ₹").append(total.toPlainString());
+        summary.append("\nSubtotal: ₹").append(total.toPlainString());
         Object[] options = {"Continue shopping", "Checkout"};
         int choice = JOptionPane.showOptionDialog(this, summary.toString(), "My Cart",
             JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
@@ -203,8 +204,8 @@ public final class MarketplaceFrame extends JPanel {
     }
 
     private void showProductDetails(MarketplaceDAO.Product p) {
-        String detail = p.title + "\\n\\n" + p.description + "\\n\\nCategory: " + p.category
-            + "\\nSeller: " + p.sellerName + "\\nPrice: ₹" + p.price.toPlainString()
+        String detail = p.title + "\n\n" + p.description + "\n\nCategory: " + p.category
+            + "\nSeller: " + p.sellerName + "\nPrice: ₹" + p.price.toPlainString()
             + "\\nAvailable: " + p.stock;
         Object[] options = {"Close", "Add to cart"};
         int choice = JOptionPane.showOptionDialog(this, detail, "Product details",
@@ -257,6 +258,7 @@ public final class MarketplaceFrame extends JPanel {
         if(qty<1 || qty>p.stock){error("Quantity must be between 1 and "+p.stock+".");return;}
         cart.put(p.id,cart.getOrDefault(p.id,0)+qty);
         status.setText(products.size() + " items  ·  " + cartCount() + " in cart");
+        if (cartButton != null) cartButton.setText("Cart (" + cartCount() + ")");
         JOptionPane.showMessageDialog(this, p.title + " added to your cart.", "Added to cart", JOptionPane.INFORMATION_MESSAGE);
     }
 
