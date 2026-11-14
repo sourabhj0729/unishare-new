@@ -11,6 +11,9 @@ A Java Swing desktop application backed by MySQL using JDBC.
 - Community Hall of Fame with live rankings for top resource contributors, top lenders and reliable on-time borrowers.
 - Community titles: Rising Star (1+ activities), Expert (5+), Master (10+) and Grandmaster (20+).
 - History records include borrowed date, due date, returned date and current status (Borrowed, Overdue or Returned).
+- Campus Marketplace inside the existing Java Swing dashboard: list products for sale, browse/search/filter listings, add quantities to a shopping cart, place pickup orders, and view your order history.
+- Marketplace orders and stock are persisted in MySQL; checkout uses a database transaction and locks product rows to prevent overselling.
+
 
 ## Requirements
 - JDK 11 or newer.
@@ -57,3 +60,13 @@ java -cp "out;lib/*" unishare.Main
 ```
 
 On Linux/macOS, use `:` instead of `;` in the Java classpath.
+
+## Campus Marketplace
+
+Open **Campus Marketplace** from the signed-in dashboard. Students can list items with a category, description, INR price and available quantity; browse and search other students' listings; add products to a cart; place a campus-pickup order; and view their placed-order history.
+
+Marketplace data uses separate `marketplace_products`, `marketplace_orders` and `marketplace_order_items` tables. On startup, the application creates these tables if missing. This is an additive schema change: the existing login, resource borrowing, borrowing history and Hall of Fame data are retained.
+
+### Current checkout scope
+
+Orders are recorded as placed and stock is deducted atomically. Buyers arrange payment and handover directly with sellers at the selected campus pickup point. Online payments, seller-side order fulfilment/status updates, product photos, ratings/reviews, refunds and delivery integration are not included in this first version.
