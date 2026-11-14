@@ -37,6 +37,7 @@ public final class MarketplaceFrame extends JFrame {
     private final JTextField search=new JTextField(22);
     private final JComboBox<String> category=new JComboBox<>();
     private final JLabel status=Ui.label("Your campus store",Font.PLAIN,12f,Ui.MUTED);
+    private boolean loadingCategories;
 
     public MarketplaceFrame(Models.User me) {
         super("UniShare — Campus Marketplace");
@@ -74,7 +75,7 @@ public final class MarketplaceFrame extends JFrame {
         category.addItem("All categories"); Ui.style(category); Ui.height(category,38);
         Ui.Button find=new Ui.Button("Search",Ui.Button.Kind.SECONDARY);
         find.addActionListener(e->reload()); search.addActionListener(e->reload());
-        category.addActionListener(e->{if(category.getSelectedItem()!=null) reload();});
+        category.addActionListener(e->{if(!loadingCategories && category.getSelectedItem()!=null) reload();});
         filters.add(search); filters.add(category); filters.add(find);
         top.add(filters,BorderLayout.SOUTH);
         table.setRowHeight(36); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -91,9 +92,11 @@ public final class MarketplaceFrame extends JFrame {
         try {
             Object selected=category.getSelectedItem();
             List<String> cats=dao.categories();
+            loadingCategories=true;
             category.removeAllItems(); category.addItem("All categories");
             for(String c:cats) category.addItem(c);
             if(selected!=null) category.setSelectedItem(selected);
+            loadingCategories=false;
             products.clear();
             products.addAll(dao.products(search.getText(),(String)category.getSelectedItem()));
             model.setRowCount(0);
