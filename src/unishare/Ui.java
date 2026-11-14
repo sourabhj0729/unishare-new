@@ -28,18 +28,18 @@ import javax.swing.border.Border;
 public final class Ui {
     private Ui() {}
 
-    public static final Color PRIMARY = new Color(0x4F46E5);
-    public static final Color PRIMARY_DARK = new Color(0x4338CA);
-    public static final Color PRIMARY_SOFT = new Color(0xEEF2FF);
-    public static final Color BG = new Color(0xF3F4F8);
+    public static final Color PRIMARY = new Color(0x079B83);
+    public static final Color PRIMARY_DARK = new Color(0x087F70);
+    public static final Color PRIMARY_SOFT = new Color(0xE6F7F3);
+    public static final Color BG = new Color(0xF5F8F9);
     public static final Color CARD = Color.WHITE;
-    public static final Color SIDEBAR = new Color(0x1E1B4B);
-    public static final Color SIDEBAR_HOVER = new Color(0x312E81);
+    public static final Color SIDEBAR = new Color(0x123C3A);
+    public static final Color SIDEBAR_HOVER = new Color(0x1D5A54);
     public static final Color TEXT = new Color(0x111827);
     public static final Color MUTED = new Color(0x6B7280);
     public static final Color BORDER = new Color(0xE5E7EB);
-    public static final Color SUCCESS = new Color(0x15803D);
-    public static final Color SUCCESS_BG = new Color(0xDCFCE7);
+    public static final Color SUCCESS = new Color(0x079B83);
+    public static final Color SUCCESS_BG = new Color(0xDDF7EF);
     public static final Color WARN = new Color(0xB45309);
     public static final Color WARN_BG = new Color(0xFEF3C7);
     public static final Color DANGER = new Color(0xDC2626);
