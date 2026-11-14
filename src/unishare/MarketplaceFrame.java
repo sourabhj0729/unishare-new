@@ -23,11 +23,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 /** Buy-and-sell marketplace embedded in the existing UniShare desktop application. */
-public final class MarketplaceFrame extends JFrame {
+public final class MarketplaceFrame extends JPanel {
     private final Models.User me;
     private final MarketplaceDAO dao=new MarketplaceDAO();
     private final List<MarketplaceDAO.Product> products=new ArrayList<>();
@@ -43,12 +44,9 @@ public final class MarketplaceFrame extends JFrame {
     private boolean loadingCategories;
 
     public MarketplaceFrame(Models.User me) {
-        super("UniShare — Campus Marketplace");
         this.me=me;
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(1050,650);
-        setMinimumSize(new Dimension(850,550));
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+        setBackground(Ui.BG);
         build();
         reload();
     }
@@ -88,7 +86,7 @@ public final class MarketplaceFrame extends JFrame {
         JPanel bottom=new JPanel(new BorderLayout()); bottom.setOpaque(false);
         bottom.add(status,BorderLayout.WEST);
         root.add(top,BorderLayout.NORTH); root.add(scroll,BorderLayout.CENTER); root.add(bottom,BorderLayout.SOUTH);
-        setContentPane(root);
+        add(root, BorderLayout.CENTER);
     }
 
     private void reload() {
@@ -145,7 +143,7 @@ public final class MarketplaceFrame extends JFrame {
         desc.setWrapStyleWord(true);
         desc.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
 
-        JDialog dialog = new JDialog(this, "Create campus listing", true);
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Create campus listing", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         JPanel root = new JPanel(new BorderLayout(0, 0));
