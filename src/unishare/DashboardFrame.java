@@ -134,6 +134,17 @@ public class DashboardFrame extends JFrame {
             p.add(Box.createVerticalStrut(6));
         }
 
+        Ui.Button marketplace = new Ui.Button("Campus Marketplace", Ui.Button.Kind.NAV);
+        marketplace.setAlignmentX(0f);
+        marketplace.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        marketplace.setToolTipText("Buy and sell products with other students");
+        marketplace.addActionListener(e -> {
+            MarketplaceFrame frame = new MarketplaceFrame(me);
+            frame.setVisible(true);
+        });
+        p.add(marketplace);
+        p.add(Box.createVerticalStrut(6));
+
         Ui.Button hallOfFame = new Ui.Button("Community Hall of Fame", Ui.Button.Kind.NAV);
         hallOfFame.setAlignmentX(0f);
         hallOfFame.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
