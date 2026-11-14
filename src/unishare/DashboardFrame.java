@@ -219,7 +219,13 @@ public class DashboardFrame extends JFrame {
             dispose();
         });
         p.add(logout);
-        return p;
+        JScrollPane sidebarScroll = new JScrollPane(p);
+        sidebarScroll.setPreferredSize(new Dimension(250, 0));
+        sidebarScroll.setBorder(BorderFactory.createEmptyBorder());
+        sidebarScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sidebarScroll.getViewport().setBackground(Ui.SIDEBAR);
+        sidebarScroll.getVerticalScrollBar().setUnitIncrement(16);
+        return sidebarScroll;
     }
 
     private Ui.Button addNavigationButton(JPanel sidebar, String text, Runnable action, boolean resourceNav) {
