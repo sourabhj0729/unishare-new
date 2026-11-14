@@ -1,6 +1,7 @@
 package unishare;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -125,25 +128,140 @@ public final class MarketplaceFrame extends JFrame {
     }
 
     private void sellItem() {
-        JTextField title=new JTextField(); JTextField cat=new JTextField("Books");
-        JTextArea desc=new JTextArea(4,24); JTextField price=new JTextField(); JTextField stock=new JTextField("1");
-        JPanel form=new JPanel(new java.awt.GridLayout(0,1,5,5));
-        form.add(new JLabel("Product name"));form.add(title);form.add(new JLabel("Category"));form.add(cat);
-        form.add(new JLabel("Description"));form.add(new JScrollPane(desc));form.add(new JLabel("Price (INR)"));form.add(price);
-        form.add(new JLabel("Quantity available"));form.add(stock);
-        int choice=JOptionPane.showConfirmDialog(this,form,"Create campus listing",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
-        if(choice!=JOptionPane.OK_OPTION)return;
-        try {
-            String t=title.getText().trim(), c=cat.getText().trim(), d=desc.getText().trim();
-            BigDecimal amount=new BigDecimal(price.getText().trim()); int qty=Integer.parseInt(stock.getText().trim());
-            if(t.isEmpty()||t.length()>120||c.isEmpty()||c.length()>50||d.length()>500)throw new IllegalArgumentException("Check product name, category and description lengths.");
-            if(amount.compareTo(BigDecimal.ZERO)<=0||amount.scale()>2||amount.compareTo(new BigDecimal("9999999.99"))>0)throw new IllegalArgumentException("Price must be positive and have at most 2 decimal places.");
-            if(qty<1||qty>10000)throw new IllegalArgumentException("Quantity must be between 1 and 10000.");
-            dao.createProduct(t,c,d,amount,qty,me.userId);
-            JOptionPane.showMessageDialog(this,"Your product is now listed.","Listing created",JOptionPane.INFORMATION_MESSAGE);
-            reload();
-        } catch(NumberFormatException ex){error("Enter a valid price and whole-number stock quantity.");}
-          catch(Exception ex){error(ex.getMessage());}
+        JTextField title = new JTextField();
+        JTextField cat = new JTextField("Books");
+        JTextArea desc = new JTextArea(3, 20);
+        JTextField price = new JTextField();
+        JTextField stock = new JTextField("1");
+
+        styleMarketplaceField(title);
+        styleMarketplaceField(cat);
+        styleMarketplaceField(price);
+        styleMarketplaceField(stock);
+        desc.setFont(Ui.font(Font.PLAIN, 13f));
+        desc.setForeground(Ui.TEXT);
+        desc.setBackground(Color.WHITE);
+        desc.setLineWrap(true);
+        desc.setWrapStyleWord(true);
+        desc.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+
+        JDialog dialog = new JDialog(this, "Create campus listing", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        JPanel root = new JPanel(new BorderLayout(0, 0));
+        root.setBackground(Color.WHITE);
+
+        JPanel header = new JPanel();
+        header.setBackground(Ui.SIDEBAR);
+        header.setLayout(new javax.swing.BoxLayout(header, javax.swing.BoxLayout.Y_AXIS));
+        header.setBorder(BorderFactory.createEmptyBorder(20, 24, 18, 24));
+        JLabel heading = Ui.label("Sell an item", Font.BOLD, 21f, Color.WHITE);
+        JLabel subheading = Ui.label("Add a product for students on your campus", Font.PLAIN, 12f, new Color(0xC7D2FE));
+        heading.setAlignmentX(0f);
+        subheading.setAlignmentX(0f);
+        header.add(heading);
+        header.add(javax.swing.Box.createVerticalStrut(5));
+        header.add(subheading);
+
+        JPanel form = new JPanel();
+        form.setBackground(Color.WHITE);
+        form.setLayout(new javax.swing.BoxLayout(form, javax.swing.BoxLayout.Y_AXIS));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 24, 12, 24));
+
+        form.add(marketplaceField("Product name", title, "e.g. Engineering Mathematics textbook"));
+        form.add(javax.swing.Box.createVerticalStrut(13));
+        form.add(marketplaceField("Category", cat, "e.g. Books, Electronics, Stationery"));
+        form.add(javax.swing.Box.createVerticalStrut(13));
+
+        JScrollPane descriptionScroll = new JScrollPane(desc);
+        descriptionScroll.setBorder(BorderFactory.createLineBorder(Ui.BORDER));
+        descriptionScroll.setPreferredSize(new Dimension(100, 78));
+        descriptionScroll.setMinimumSize(new Dimension(100, 78));
+        descriptionScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 78));
+        form.add(marketplaceField("Description", descriptionScroll, "Condition, details, or pickup notes"));
+        form.add(javax.swing.Box.createVerticalStrut(13));
+
+        JPanel priceStock = new JPanel(new java.awt.GridLayout(1, 2, 12, 0));
+        priceStock.setOpaque(false);
+        priceStock.add(marketplaceField("Price (₹)", price, "e.g. 450"));
+        priceStock.add(marketplaceField("Available quantity", stock, "e.g. 1"));
+        priceStock.setAlignmentX(0f);
+        priceStock.setMaximumSize(new Dimension(Integer.MAX_VALUE, 68));
+        form.add(priceStock);
+
+        JLabel hint = Ui.label("Your listing will be visible to other registered students.", Font.PLAIN, 11f, Ui.MUTED);
+        hint.setAlignmentX(0f);
+        form.add(javax.swing.Box.createVerticalStrut(12));
+        form.add(hint);
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        footer.setBackground(new Color(0xF9FAFB));
+        footer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, Ui.BORDER),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)));
+        Ui.Button cancel = new Ui.Button("Cancel", Ui.Button.Kind.SECONDARY);
+        Ui.Button publish = new Ui.Button("Publish listing", Ui.Button.Kind.PRIMARY);
+        cancel.addActionListener(e -> dialog.dispose());
+        publish.addActionListener(e -> {
+            try {
+                String t = title.getText().trim();
+                String categoryName = cat.getText().trim();
+                String description = desc.getText().trim();
+                BigDecimal amount = new BigDecimal(price.getText().trim());
+                int quantity = Integer.parseInt(stock.getText().trim());
+
+                if (t.isEmpty() || t.length() > 120 || categoryName.isEmpty() || categoryName.length() > 50 || description.length() > 500)
+                    throw new IllegalArgumentException("Check the product name, category and description lengths.");
+                if (amount.compareTo(BigDecimal.ZERO) <= 0 || amount.scale() > 2 || amount.compareTo(new BigDecimal("9999999.99")) > 0)
+                    throw new IllegalArgumentException("Enter a positive price with at most 2 decimal places.");
+                if (quantity < 1 || quantity > 10000)
+                    throw new IllegalArgumentException("Quantity must be between 1 and 10000.");
+
+                dao.createProduct(t, categoryName, description, amount, quantity, me.userId);
+                dialog.dispose();
+                JOptionPane.showMessageDialog(this, "Your product is now listed.", "Listing published", JOptionPane.INFORMATION_MESSAGE);
+                reload();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Enter a valid price and whole-number quantity.", "Check your details", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Could not publish listing", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        footer.add(cancel);
+        footer.add(publish);
+
+        root.add(header, BorderLayout.NORTH);
+        root.add(form, BorderLayout.CENTER);
+        root.add(footer, BorderLayout.SOUTH);
+        dialog.setContentPane(root);
+        dialog.setSize(470, 540);
+        dialog.setMinimumSize(new Dimension(470, 540));
+        dialog.setMaximumSize(new Dimension(470, 540));
+        dialog.setResizable(false);
+        dialog.getRootPane().setDefaultButton(publish);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void styleMarketplaceField(JTextField field) {
+        Ui.style(field);
+        field.setFont(Ui.font(Font.PLAIN, 13f));
+        Ui.height(field, 38);
+    }
+
+    private JPanel marketplaceField(String caption, JComponent input, String placeholderHint) {
+        JPanel group = new JPanel();
+        group.setOpaque(false);
+        group.setLayout(new javax.swing.BoxLayout(group, javax.swing.BoxLayout.Y_AXIS));
+        JLabel label = Ui.label(caption, Font.BOLD, 12f, new Color(0x374151));
+        label.setAlignmentX(0f);
+        input.setAlignmentX(0f);
+        group.add(label);
+        group.add(javax.swing.Box.createVerticalStrut(6));
+        group.add(input);
+        group.setAlignmentX(0f);
+        group.setMaximumSize(new Dimension(Integer.MAX_VALUE, input instanceof JScrollPane ? 104 : 64));
+        return group;
     }
 
     private void checkout() {
